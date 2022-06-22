@@ -243,26 +243,6 @@ class AreaRangeSeries extends AreaSeries {
     }
 
     /**
-     * Translate a point's plotHigh from the internal angle and radius measures
-     * to true plotHigh coordinates. This is an addition of the toXY method
-     * found in Polar.js, because it runs too early for arearanges to be
-     * considered (#3419).
-     * @private
-     */
-    public highToXY(point: AreaRangePoint): void {
-        // Find the polar plotX and plotY
-        const chart = this.chart,
-            xy = this.xAxis.postTranslate(
-                point.rectPlotX || 0,
-                this.yAxis.len - point.plotHigh
-            );
-
-        point.plotHighX = xy.x - chart.plotLeft;
-        point.plotHigh = xy.y - chart.plotTop;
-        point.plotLowX = point.plotX;
-    }
-
-    /**
      * Translate data points from raw values x and y to plotX and plotY.
      * @private
      */
@@ -299,11 +279,13 @@ class AreaRangeSeries extends AreaSeries {
         });
 
         // Postprocess plotHigh
-        if (this.chart.polar) {
+        if (this.chart.polar && series.polar) {
+            const polar = series.polar;
+
             this.points.forEach(function (
                 point: AreaRangePoint
             ): void {
-                series.highToXY(point);
+                polar.highToXY(point);
                 point.tooltipPos = [
                     (point.plotHighX + point.plotLowX) / 2,
                     (point.plotHigh + point.plotLow) / 2
@@ -318,7 +300,6 @@ class AreaRangeSeries extends AreaSeries {
      * @private
      */
     public getGraphPath(points: Array<AreaRangePoint>): SVGPath {
-
         const highPoints = [],
             highAreaPoints: Array<AreaPoint> = [],
             getGraphPath = areaProto.getGraphPath,
